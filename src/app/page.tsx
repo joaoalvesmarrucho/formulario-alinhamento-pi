@@ -158,8 +158,8 @@ export default function Home() {
           </div>
 
           {/* Bloco 1 — Valores */}
-          <div className="mb-8 pb-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-6">
+          <div className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
               Ideais que valorizas
             </h2>
             
@@ -187,8 +187,8 @@ export default function Home() {
           </div>
 
           {/* Bloco 2 — Preocupações */}
-          <div className="mb-8 pb-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-6">
+          <div className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
               O que mais te preocupa
             </h2>
             
@@ -216,8 +216,8 @@ export default function Home() {
           </div>
 
           {/* Bloco 3 — Temas */}
-          <div className="mb-8 pb-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-6">
+          <div className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
               Temas de política pública
             </h2>
             
