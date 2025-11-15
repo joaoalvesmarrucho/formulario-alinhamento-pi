@@ -7,6 +7,7 @@ const VALORES = [
   'Liberdade',
   'Democracia',
   'Igualdade',
+  'Equidade',
   'Justiça social',
   'Comunidade',
   'Individualismo',
@@ -38,7 +39,9 @@ const TEMAS = [
   'Cultura, arte e media',
   'Ambiente e clima',
   'Tecnologia e inovação',
+  'Políticas monetárias',
   'Funcionamento dos serviços (públicos e privados)',
+  'Contrato social',
   'Governança / funcionamento da democracia',
 ];
 
@@ -99,30 +102,30 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Formulário de Alinhamento Político
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50 mb-2">
+            Coisas importantes
           </h1>
-          <p className="text-gray-600">
-            Partido Inteiro — Processo de alinhamento interno
+          <p className="text-gray-600 dark:text-gray-300">
+            Algumas perguntas simples sobre o que valorizas, o que te preocupa e onde gostavas de participar.
           </p>
-          <p className="text-sm text-gray-500 mt-2">
-            ⏱️ Tempo estimado: ≤ 2 minutos
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            ⏱️ Demora cerca de 2 minutos.
           </p>
         </div>
 
-  <form onSubmit={handleSubmit} className="bg-white shadow-sm rounded-lg p-8">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8">
           {/* Identificação */}
           <div className="mb-8 pb-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-6">
               Identificação
             </h2>
             
             <div className="mb-4">
-              <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="nome" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Nome ou pseudónimo *
               </label>
               <input
@@ -131,13 +134,13 @@ export default function Home() {
                 required
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Podes usar pseudónimo se preferires"
               />
             </div>
 
             <div className="mb-4">
-              <label htmlFor="contacto" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="contacto" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Contacto (email)
               </label>
               <input
@@ -145,10 +148,10 @@ export default function Home() {
                 id="contacto"
                 value={contacto}
                 onChange={(e) => setContacto(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="email@example.com (opcional)"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Apenas para convites a sessões. Não será partilhado publicamente.
               </p>
             </div>
@@ -156,7 +159,7 @@ export default function Home() {
 
           {/* Bloco 1 — Valores */}
           <div className="mb-8 pb-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-6">
               Ideais que valorizas
             </h2>
             
@@ -169,7 +172,7 @@ export default function Home() {
             />
 
             <div className="mt-6">
-              <label htmlFor="outrosValores" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="outrosValores" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Há outros ideais importantes que não estão na lista? (opcional)
               </label>
               <textarea
@@ -177,7 +180,7 @@ export default function Home() {
                 value={outrosValores}
                 onChange={(e) => setOutrosValores(e.target.value)}
                 rows={2}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Escreve aqui outros ideais que consideres importantes..."
               />
             </div>
@@ -185,7 +188,7 @@ export default function Home() {
 
           {/* Bloco 2 — Preocupações */}
           <div className="mb-8 pb-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-6">
               O que mais te preocupa
             </h2>
             
@@ -198,7 +201,7 @@ export default function Home() {
             />
 
             <div className="mt-6">
-              <label htmlFor="outrasPreocupacoes" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="outrasPreocupacoes" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Há outras preocupações importantes que não estão na lista? (opcional)
               </label>
               <textarea
@@ -206,7 +209,7 @@ export default function Home() {
                 value={outrasPreocupacoes}
                 onChange={(e) => setOutrasPreocupacoes(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Escreve aqui outras preocupações que consideres importantes..."
               />
             </div>
@@ -214,7 +217,7 @@ export default function Home() {
 
           {/* Bloco 3 — Temas */}
           <div className="mb-8 pb-8 border-b border-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-6">
               Temas de política pública
             </h2>
             
@@ -227,7 +230,7 @@ export default function Home() {
             />
 
             <div className="mt-6">
-              <label htmlFor="outrosTemas" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="outrosTemas" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Há outros temas importantes que não estão na lista? (opcional)
               </label>
               <textarea
@@ -235,7 +238,7 @@ export default function Home() {
                 value={outrosTemas}
                 onChange={(e) => setOutrosTemas(e.target.value)}
                 rows={2}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Escreve aqui outros temas que consideres importantes..."
               />
             </div>
@@ -243,11 +246,11 @@ export default function Home() {
 
           {/* Bloco 4 — Participação */}
           <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-50 mb-6">
               Tipo de participação
             </h2>
             
-            <p className="text-lg text-gray-900 mb-4">
+            <p className="text-lg text-gray-900 dark:text-gray-100 mb-4">
               Neste momento, o que procuras mais neste processo?
             </p>
 
@@ -260,7 +263,7 @@ export default function Home() {
               ].map((option) => (
                 <label
                   key={option.value}
-                  className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="flex items-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <input
                     type="radio"
@@ -269,9 +272,9 @@ export default function Home() {
                     checked={tipoParticipacao === option.value}
                     onChange={(e) => setTipoParticipacao(e.target.value)}
                     required
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-500 focus:ring-blue-500"
                   />
-                  <span className="ml-3 text-gray-800">{option.label}</span>
+                  <span className="ml-3 text-gray-800 dark:text-gray-100">{option.label}</span>
                 </label>
               ))}
             </div>
