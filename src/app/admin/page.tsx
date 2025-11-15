@@ -3,8 +3,9 @@ import React from 'react';
 async function fetchRespostas(tokenOk: boolean) {
   if (!tokenOk) return null;
 
-  const res = await fetch('http://localhost:3000/api/respostas', {
-    // Em produção, isto deve ser chamado do servidor (Next.js server component) sem URL fixa
+  // Em ambiente de produção (Vercel), usamos fetch relativo para chamar a própria API do projecto.
+  // Como este componente corre no servidor, o fetch relativo é resolvido para o host correcto.
+  const res = await fetch("/api/respostas", {
     cache: 'no-store',
   });
 
