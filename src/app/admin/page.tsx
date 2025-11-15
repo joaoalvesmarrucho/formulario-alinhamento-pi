@@ -3,9 +3,10 @@ import React from 'react';
 async function fetchRespostas(tokenOk: boolean) {
   if (!tokenOk) return null;
 
-  // Em ambiente de produção (Vercel), usamos fetch relativo para chamar a própria API do projecto.
-  // Como este componente corre no servidor, o fetch relativo é resolvido para o host correcto.
-  const res = await fetch("/api/respostas", {
+  // Construímos sempre um URL absoluto para evitar problemas com Server Components
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+  const res = await fetch(`${baseUrl}/api/respostas`, {
     cache: 'no-store',
   });
 
@@ -26,8 +27,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4">
       <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8">
-        <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-50">Painel de respostas</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-300 mb-6">Apenas para uso interno.</p>
+        <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-50">Respostas</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-300 mb-6">Visão geral das respostas submetidas.</p>
 
         {!tokenOk && (
           <p className="text-red-600 text-sm mb-4">

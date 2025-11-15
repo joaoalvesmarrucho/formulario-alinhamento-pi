@@ -92,13 +92,13 @@ export default function Home() {
   const formData = {
     nome,
     contacto,
-    ranking_valores: rankingValores,
-    outros_valores: outrosValores,
-    ranking_preocupacoes: rankingPreocupacoes,
-    outras_preocupacoes: outrasPreocupacoes,
-    ranking_temas: rankingTemas,
-    outros_temas: outrosTemas,
-    tipo_participacao: tipoParticipacao,
+    ideais: rankingValores,
+    outrosIdeais: outrosValores,
+    preocupacoes: rankingPreocupacoes,
+    outrosPreocupacoes: outrasPreocupacoes,
+    temas: rankingTemas,
+    outrosTemas: outrosTemas,
+    tipoParticipacao: tipoParticipacao,
   };
 
   return (
