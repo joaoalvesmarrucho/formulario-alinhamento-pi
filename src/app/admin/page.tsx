@@ -115,7 +115,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
-                📊 Gráficos
+                Gráficos
               </button>
               <button
                 onClick={() => setView('respostas')}
@@ -125,7 +125,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                     : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
-                📋 Respostas individuais
+                Respostas individuais
               </button>
             </div>
 
