@@ -75,8 +75,19 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4">
       <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8">
-        <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-50">Respostas</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-300 mb-6">Visão geral das respostas submetidas.</p>
+        {/* Link para voltar ao formulário */}
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-50">Respostas</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-300">Visão geral das respostas submetidas.</p>
+          </div>
+          <a
+            href="/"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
+          >
+            ← Voltar ao formulário
+          </a>
+        </div>
 
         {!tokenOk && (
           <p className="text-red-600 text-sm mb-4">
