@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Nota: armazenamento em memória - reinicia sempre que o servidor reinicia.
-// Serve para experimentar o fluxo sem ainda decidir infraestrutura de base de dados.
-const respostas: any[] = [];
+import { sql } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,22 +10,62 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
     }
 
-    const registro = {
-      id: respostas.length + 1,
-      recebidoEm: new Date().toISOString(),
-      ...data,
-    };
+    const result = await sql`
+      INSERT INTO respostas (
+        nome, 
+        contacto, 
+        ideais, 
+        outros_ideais, 
+        preocupacoes, 
+        outros_preocupacoes, 
+        temas, 
+        outros_temas, 
+        tipo_participacao
+      )
+      VALUES (
+        ${data.nome},
+        ${data.contacto},
+        ${JSON.stringify(data.ideais)},
+        ${data.outrosIdeais},
+        ${JSON.stringify(data.preocupacoes)},
+        ${data.outrosPreocupacoes},
+        ${JSON.stringify(data.temas)},
+        ${data.outrosTemas},
+        ${data.tipoParticipacao}
+      )
+      RETURNING id
+    `;
 
-    respostas.push(registro);
-
-    return NextResponse.json({ ok: true, id: registro.id }, { status: 201 });
+    return NextResponse.json({ ok: true, id: result[0].id }, { status: 201 });
   } catch (error) {
     console.error('Erro a guardar resposta:', error);
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }
 
-// Endpoint simples para o painel /admin ler as respostas actuais
+// Endpoint simples para o painel /admin ler as respostas
 export async function GET() {
-  return NextResponse.json({ total: respostas.length, respostas });
+  try {
+    const respostas = await sql`
+      SELECT 
+        id,
+        recebido_em as "recebidoEm",
+        nome,
+        contacto,
+        ideais,
+        outros_ideais as "outrosIdeais",
+        preocupacoes,
+        outros_preocupacoes as "outrosPreocupacoes",
+        temas,
+        outros_temas as "outrosTemas",
+        tipo_participacao as "tipoParticipacao"
+      FROM respostas
+      ORDER BY recebido_em DESC
+    `;
+
+    return NextResponse.json({ total: respostas.length, respostas });
+  } catch (error) {
+    console.error('Erro ao ler respostas:', error);
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+  }
 }
