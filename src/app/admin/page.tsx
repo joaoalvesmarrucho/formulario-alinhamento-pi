@@ -5,10 +5,8 @@ import React, { useState, useEffect } from 'react';
 async function fetchRespostas(tokenOk: boolean) {
   if (!tokenOk) return null;
 
-  // Construímos sempre um URL absoluto para evitar problemas com Server Components
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
-  const res = await fetch(`${baseUrl}/api/respostas`, {
+  // Usar URL relativo para funcionar tanto em localhost como em produção
+  const res = await fetch('/api/respostas', {
     cache: 'no-store',
   });
 
