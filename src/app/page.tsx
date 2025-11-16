@@ -59,6 +59,15 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
 
+  const handleAdminAccess = () => {
+    const password = prompt('Palavra-passe para aceder ao dashboard:');
+    if (password === '88888888') {
+      window.location.href = '/admin?token=debug';
+    } else if (password !== null) {
+      alert('Palavra-passe incorreta.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitMessage(null);
@@ -104,10 +113,20 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
+        {/* Link para Admin no canto superior esquerdo */}
+        <div className="mb-6">
+          <button
+            onClick={handleAdminAccess}
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          >
+            📊 Visão geral das respostas
+          </button>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50 mb-2">
-            Coisas importantes
+            Valores, prioridades e interesses políticos
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
             Algumas perguntas simples sobre o que valorizas, o que te preocupa e onde gostavas de participar.
