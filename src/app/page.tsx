@@ -113,13 +113,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        {/* Link para Admin no canto superior esquerdo */}
-        <div className="mb-6">
+        {/* Link para Admin no canto superior direito */}
+        <div className="mb-6 flex justify-end">
           <button
             onClick={handleAdminAccess}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
           >
-            📊 Visão geral das respostas
+            ⚙️ Visão geral das respostas
           </button>
         </div>
 
