@@ -166,7 +166,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     }
 
     // Verificar password (deve ser diferente da password de acesso)
-    if (password !== '99999999') { // 8 noves
+    if (password !== '666666') { // 6 seis
       alert('Password incorreta. Não tens permissão para apagar respostas.');
       return;
     }
