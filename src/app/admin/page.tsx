@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { PieChart as RPieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart as RPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const PIE_COLORS = [
   '#3B82F6', // blue-500
@@ -274,11 +274,6 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                             formatter={(v: any) => `${v} respostas`}
                             contentStyle={{ fontSize: '12px' }}
                           />
-                          <Legend 
-                            verticalAlign="bottom" 
-                            height={24}
-                            wrapperStyle={{ fontSize: '11px' }}
-                          />
                         </RPieChart>
                       </ResponsiveContainer>
                     </div>
@@ -355,11 +350,6 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                           <Tooltip 
                             formatter={(v: any) => `${v} respostas`}
                             contentStyle={{ fontSize: '12px' }}
-                          />
-                          <Legend 
-                            verticalAlign="bottom" 
-                            height={24}
-                            wrapperStyle={{ fontSize: '11px' }}
                           />
                         </RPieChart>
                       </ResponsiveContainer>
@@ -438,11 +428,6 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                             formatter={(v: any) => `${v} respostas`}
                             contentStyle={{ fontSize: '12px' }}
                           />
-                          <Legend 
-                            verticalAlign="bottom" 
-                            height={24}
-                            wrapperStyle={{ fontSize: '11px' }}
-                          />
                         </RPieChart>
                       </ResponsiveContainer>
                     </div>
@@ -520,11 +505,6 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                             <Tooltip 
                               formatter={(v: any) => `${v} respostas`}
                               contentStyle={{ fontSize: '12px' }}
-                            />
-                            <Legend 
-                              verticalAlign="bottom" 
-                              height={24}
-                              wrapperStyle={{ fontSize: '11px' }}
                             />
                           </RPieChart>
                         </ResponsiveContainer>
