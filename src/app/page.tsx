@@ -10,7 +10,7 @@ const VALORES = [
   'Equidade',
   'Justiça social',
   'Comunidade',
-  'Individualismo',
+  'Individualidade',
   'Ecologia / sustentabilidade',
   'Direitos humanos',
   'Laicidade / liberdade religiosa',

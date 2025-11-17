@@ -1,6 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { PieChart as RPieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+
+const PIE_COLORS = [
+  '#3B82F6', // blue-500
+  '#10B981', // emerald-500
+  '#EF4444', // red-500
+  '#F59E0B', // amber-500
+  '#8B5CF6', // violet-500
+  '#06B6D4', // cyan-500
+  '#22C55E', // green-500
+  '#EAB308', // yellow-500
+  '#F472B6', // pink-400
+  '#A3E635', // lime-400
+];
 
 async function fetchRespostas(tokenOk: boolean) {
   if (!tokenOk) return null;
@@ -222,93 +236,32 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                 {/* Gráfico de Ideais */}
                 <div className="bg-gray-50 dark:bg-gray-900/40 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Ideais mais valorizados</h2>
-                  <div className="space-y-3">
-                    {Object.entries(stats.ideaisCount)
-                      .sort(([, a], [, b]) => (b as number) - (a as number))
-                      .map(([item, count]) => {
-                        const percentage = ((count as number) / stats.totalRespostas) * 100;
-                        return (
-                          <div key={item} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
-                              <span className="text-gray-600 dark:text-gray-400">
-                                {count} ({percentage.toFixed(0)}%)
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div
-                                className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    {/* Pie chart à esquerda em desktop */}
+                    <div className="h-64 lg:col-span-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RPieChart>
+                          <Pie
+                            data={Object.entries(stats.ideaisCount).map(([name, value]) => ({ name, value }))}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={2}
+                          >
+                            {Object.entries(stats.ideaisCount).map(([name], idx) => (
+                              <Cell key={name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(v: any) => `${v} respostas`} />
+                          <Legend verticalAlign="bottom" height={24} />
+                        </RPieChart>
+                      </ResponsiveContainer>
+                    </div>
 
-                {/* Gráfico de Preocupações */}
-                <div className="bg-gray-50 dark:bg-gray-900/40 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Preocupações mais frequentes</h2>
-                  <div className="space-y-3">
-                    {Object.entries(stats.preocupacoesCount)
-                      .sort(([, a], [, b]) => (b as number) - (a as number))
-                      .map(([item, count]) => {
-                        const percentage = ((count as number) / stats.totalRespostas) * 100;
-                        return (
-                          <div key={item} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
-                              <span className="text-gray-600 dark:text-gray-400">
-                                {count} ({percentage.toFixed(0)}%)
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div
-                                className="bg-rose-600 dark:bg-rose-500 h-2 rounded-full transition-all"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-
-                {/* Gráfico de Temas */}
-                <div className="bg-gray-50 dark:bg-gray-900/40 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Temas de interesse</h2>
-                  <div className="space-y-3">
-                    {Object.entries(stats.temasCount)
-                      .sort(([, a], [, b]) => (b as number) - (a as number))
-                      .map(([item, count]) => {
-                        const percentage = ((count as number) / stats.totalRespostas) * 100;
-                        return (
-                          <div key={item} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
-                              <span className="text-gray-600 dark:text-gray-400">
-                                {count} ({percentage.toFixed(0)}%)
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div
-                                className="bg-emerald-600 dark:bg-emerald-500 h-2 rounded-full transition-all"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-
-                {/* Gráfico de Tipo de Participação */}
-                {Object.keys(stats.tipoParticipacaoCount).length > 0 && (
-                  <div className="bg-gray-50 dark:bg-gray-900/40 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Tipo de participação</h2>
-                    <div className="space-y-3">
-                      {Object.entries(stats.tipoParticipacaoCount)
+                    {/* Barras à direita */}
+                    <div className="space-y-3 lg:col-span-8">
+                      {Object.entries(stats.ideaisCount)
                         .sort(([, a], [, b]) => (b as number) - (a as number))
                         .map(([item, count]) => {
                           const percentage = ((count as number) / stats.totalRespostas) * 100;
@@ -322,13 +275,174 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                               </div>
                               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                 <div
-                                  className="bg-purple-600 dark:bg-purple-500 h-2 rounded-full transition-all"
+                                  className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all"
                                   style={{ width: `${percentage}%` }}
                                 />
                               </div>
                             </div>
                           );
                         })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gráfico de Preocupações */}
+                <div className="bg-gray-50 dark:bg-gray-900/40 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Preocupações mais frequentes</h2>
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    {/* Pie chart à esquerda em desktop */}
+                    <div className="h-64 lg:col-span-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RPieChart>
+                          <Pie
+                            data={Object.entries(stats.preocupacoesCount).map(([name, value]) => ({ name, value }))}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={2}
+                          >
+                            {Object.entries(stats.preocupacoesCount).map(([name], idx) => (
+                              <Cell key={name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(v: any) => `${v} respostas`} />
+                          <Legend verticalAlign="bottom" height={24} />
+                        </RPieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Barras à direita */}
+                    <div className="space-y-3 lg:col-span-8">
+                      {Object.entries(stats.preocupacoesCount)
+                        .sort(([, a], [, b]) => (b as number) - (a as number))
+                        .map(([item, count]) => {
+                          const percentage = ((count as number) / stats.totalRespostas) * 100;
+                          return (
+                            <div key={item} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {count} ({percentage.toFixed(0)}%)
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div
+                                  className="bg-rose-600 dark:bg-rose-500 h-2 rounded-full transition-all"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gráfico de Temas */}
+                <div className="bg-gray-50 dark:bg-gray-900/40 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Temas de interesse</h2>
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    {/* Pie chart à esquerda em desktop */}
+                    <div className="h-64 lg:col-span-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RPieChart>
+                          <Pie
+                            data={Object.entries(stats.temasCount).map(([name, value]) => ({ name, value }))}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={2}
+                          >
+                            {Object.entries(stats.temasCount).map(([name], idx) => (
+                              <Cell key={name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(v: any) => `${v} respostas`} />
+                          <Legend verticalAlign="bottom" height={24} />
+                        </RPieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Barras à direita */}
+                    <div className="space-y-3 lg:col-span-8">
+                      {Object.entries(stats.temasCount)
+                        .sort(([, a], [, b]) => (b as number) - (a as number))
+                        .map(([item, count]) => {
+                          const percentage = ((count as number) / stats.totalRespostas) * 100;
+                          return (
+                            <div key={item} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {count} ({percentage.toFixed(0)}%)
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div
+                                  className="bg-emerald-600 dark:bg-emerald-500 h-2 rounded-full transition-all"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gráfico de Tipo de Participação */}
+                {Object.keys(stats.tipoParticipacaoCount).length > 0 && (
+                  <div className="bg-gray-50 dark:bg-gray-900/40 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Tipo de participação</h2>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                      {/* Pie chart à esquerda em desktop */}
+                      <div className="h-64 lg:col-span-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RPieChart>
+                            <Pie
+                              data={Object.entries(stats.tipoParticipacaoCount).map(([name, value]) => ({ name, value }))}
+                              dataKey="value"
+                              nameKey="name"
+                              innerRadius={50}
+                              outerRadius={80}
+                              paddingAngle={2}
+                            >
+                              {Object.entries(stats.tipoParticipacaoCount).map(([name], idx) => (
+                                <Cell key={name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(v: any) => `${v} respostas`} />
+                            <Legend verticalAlign="bottom" height={24} />
+                          </RPieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* Barras à direita */}
+                      <div className="space-y-3 lg:col-span-8">
+                        {Object.entries(stats.tipoParticipacaoCount)
+                          .sort(([, a], [, b]) => (b as number) - (a as number))
+                          .map(([item, count]) => {
+                            const percentage = ((count as number) / stats.totalRespostas) * 100;
+                            return (
+                              <div key={item} className="space-y-1">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
+                                  <span className="text-gray-600 dark:text-gray-400">
+                                    {count} ({percentage.toFixed(0)}%)
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                  <div
+                                    className="bg-purple-600 dark:bg-purple-500 h-2 rounded-full transition-all"
+                                    style={{ width: `${percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
                     </div>
                   </div>
                 )}
