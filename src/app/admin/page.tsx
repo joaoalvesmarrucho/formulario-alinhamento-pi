@@ -3,6 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart as RPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
+// Mapeamento para corrigir labels da base de dados
+const LABEL_MAPPING: Record<string, string> = {
+  'Individualismo': 'Individualidade',
+  // Adiciona aqui mais correções se necessário
+};
+
+// Função para normalizar labels
+const normalizeLabel = (label: string): string => {
+  return LABEL_MAPPING[label] || label;
+};
+
 const PIE_COLORS = [
   '#3B82F6', // blue-500
   '#10B981', // emerald-500
@@ -141,24 +152,28 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
       // Contar ideais
       const ideais = Array.isArray(r.ideais) ? r.ideais : [];
       ideais.forEach((item: string) => {
-        stats.ideaisCount[item] = (stats.ideaisCount[item] || 0) + 1;
+        const normalizedItem = normalizeLabel(item);
+        stats.ideaisCount[normalizedItem] = (stats.ideaisCount[normalizedItem] || 0) + 1;
       });
 
       // Contar preocupações
       const preocupacoes = Array.isArray(r.preocupacoes) ? r.preocupacoes : [];
       preocupacoes.forEach((item: string) => {
-        stats.preocupacoesCount[item] = (stats.preocupacoesCount[item] || 0) + 1;
+        const normalizedItem = normalizeLabel(item);
+        stats.preocupacoesCount[normalizedItem] = (stats.preocupacoesCount[normalizedItem] || 0) + 1;
       });
 
       // Contar temas
       const temas = Array.isArray(r.temas) ? r.temas : [];
       temas.forEach((item: string) => {
-        stats.temasCount[item] = (stats.temasCount[item] || 0) + 1;
+        const normalizedItem = normalizeLabel(item);
+        stats.temasCount[normalizedItem] = (stats.temasCount[normalizedItem] || 0) + 1;
       });
 
       // Contar tipo de participação
       if (r.tipoParticipacao) {
-        stats.tipoParticipacaoCount[r.tipoParticipacao] = (stats.tipoParticipacaoCount[r.tipoParticipacao] || 0) + 1;
+        const normalizedTipo = normalizeLabel(r.tipoParticipacao);
+        stats.tipoParticipacaoCount[normalizedTipo] = (stats.tipoParticipacaoCount[normalizedTipo] || 0) + 1;
       }
     });
   }
@@ -562,14 +577,14 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4 max-h-[60vh] overflow-y-auto">
                   {data.respostas.map((r: any) => {
-                    const ideais = Array.isArray(r.ideais) ? r.ideais : [];
-                    const preocupacoes = Array.isArray(r.preocupacoes) ? r.preocupacoes : [];
-                    const temas = Array.isArray(r.temas) ? r.temas : [];
+                    const ideais = Array.isArray(r.ideais) ? r.ideais.map(normalizeLabel) : [];
+                    const preocupacoes = Array.isArray(r.preocupacoes) ? r.preocupacoes.map(normalizeLabel) : [];
+                    const temas = Array.isArray(r.temas) ? r.temas.map(normalizeLabel) : [];
 
                     const outrosIdeais = typeof r.outrosIdeais === 'string' ? r.outrosIdeais : '';
                     const outrosPreocupacoes = typeof r.outrosPreocupacoes === 'string' ? r.outrosPreocupacoes : '';
                     const outrosTemas = typeof r.outrosTemas === 'string' ? r.outrosTemas : '';
-                    const tipoParticipacao = typeof r.tipoParticipacao === 'string' ? r.tipoParticipacao : '';
+                    const tipoParticipacao = typeof r.tipoParticipacao === 'string' ? normalizeLabel(r.tipoParticipacao) : '';
 
                     return (
                       <div key={r.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900/40">
