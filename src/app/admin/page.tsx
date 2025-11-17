@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PieChart as RPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 // Mapeamento para corrigir labels da base de dados
@@ -48,6 +48,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletePassword, setDeletePassword] = useState<string | null>(null);
   
   // Hover states para sincronizar gráficos
   const [hoveredIdeal, setHoveredIdeal] = useState<string | null>(null);
@@ -58,12 +59,14 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   // Chat widget states
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMinimized, setChatMinimized] = useState(false);
-  const [chatPosition, setChatPosition] = useState({ x: 20, y: 20 });
+  const [chatPosition, setChatPosition] = useState({ x: 0, y: 0 }); // Será calculado no useEffect
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const [chatLoading, setChatLoading] = useState(false);
+  
+  const chatMessagesRef = useRef<HTMLDivElement>(null);
 
   const token = searchParams.token;
   const tokenOk = token === process.env.NEXT_PUBLIC_ADMIN_TOKEN || token === 'debug';
@@ -78,6 +81,40 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     loadData();
   }, [tokenOk]);
 
+  // Calcular posição inicial do chat no canto inferior direito
+  useEffect(() => {
+    const updatePosition = () => {
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        // Em mobile, centralizar na parte inferior
+        setChatPosition({
+          x: 20,
+          y: window.innerHeight - 600, // 600px é a altura aproximada do widget
+        });
+      } else {
+        // Desktop: canto inferior direito
+        setChatPosition({
+          x: window.innerWidth - 420, // 400px de largura + 20px margem
+          y: window.innerHeight - 620, // 600px altura + 20px margem
+        });
+      }
+    };
+
+    // Definir posição inicial
+    updatePosition();
+
+    // Atualizar ao redimensionar
+    window.addEventListener('resize', updatePosition);
+    return () => window.removeEventListener('resize', updatePosition);
+  }, []);
+
+  // Auto-scroll quando chegam novas mensagens
+  useEffect(() => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
+  }, [chatMessages, chatLoading]);
+
   // Drag handlers para o chat widget
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.chat-content')) return; // Não arrastar se clicar no conteúdo
@@ -91,9 +128,16 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
+        const newX = e.clientX - dragOffset.x;
+        const newY = e.clientY - dragOffset.y;
+        
+        // Limites para não sair da tela
+        const maxX = window.innerWidth - 400; // largura do widget
+        const maxY = window.innerHeight - 100; // altura mínima visível
+        
         setChatPosition({
-          x: e.clientX - dragOffset.x,
-          y: e.clientY - dragOffset.y,
+          x: Math.max(0, Math.min(newX, maxX)),
+          y: Math.max(0, Math.min(newY, maxY)),
         });
       }
     };
@@ -114,6 +158,22 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   }, [isDragging, dragOffset]);
 
   const handleDelete = async (id: number) => {
+    // Pedir password especial para apagar
+    const password = deletePassword || prompt('Insere a password de administração para apagar respostas:');
+    
+    if (!password) {
+      return; // Cancelado
+    }
+
+    // Verificar password (deve ser diferente da password de acesso)
+    if (password !== '99999999') { // 8 noves
+      alert('Password incorreta. Não tens permissão para apagar respostas.');
+      return;
+    }
+
+    // Guardar password na sessão para não pedir novamente
+    setDeletePassword(password);
+
     if (!confirm('Tens a certeza que queres apagar esta resposta? Esta ação não pode ser desfeita.')) {
       return;
     }
@@ -748,8 +808,8 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
             zIndex: 1000,
           }}
           className={`bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-300 dark:border-gray-600 ${
-            chatMinimized ? 'w-80' : 'w-96'
-          }`}
+            chatMinimized ? 'w-80' : 'w-full md:w-96'
+          } max-w-[calc(100vw-40px)]`}
         >
           {/* Header */}
           <div
@@ -790,7 +850,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
 
           {/* Content */}
           {!chatMinimized && (
-            <div className="chat-content p-4 flex flex-col" style={{ height: '500px' }}>
+            <div className="chat-content p-4 flex flex-col h-[500px] md:h-[500px] max-h-[60vh]">
               <div className="mb-3">
                 <p className="text-xs text-gray-600 dark:text-gray-300">
                   Faz perguntas sobre os dados. Ex: &quot;Qual é o ideal mais valorizado?&quot;
@@ -798,7 +858,10 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto mb-3 space-y-3">
+              <div 
+                ref={chatMessagesRef}
+                className="flex-1 overflow-y-auto mb-3 space-y-3"
+              >
                 {chatMessages.length === 0 && (
                   <p className="text-gray-400 dark:text-gray-500 text-center text-sm py-8">
                     Sem mensagens. Faz uma pergunta!
