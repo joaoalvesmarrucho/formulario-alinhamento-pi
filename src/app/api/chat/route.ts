@@ -150,9 +150,9 @@ ${Object.entries(temasCount)
   .join('\n')}
 ${outrosTemas.length > 0 ? `\nOutros temas mencionados em texto livre:\n${outrosTemas.map(t => `- "${t}"`).join('\n')}` : ''}
 
-Pergunta: ${question}
+Pergunta do utilizador: ${question}
 
-Responde em português de Portugal de forma clara e direta.`;
+IMPORTANTE: Responde de forma natural e conversacional. Se a pergunta for sobre ti (quem és, que modelo, etc), responde normalmente. Se for sobre os dados, usa as estatísticas acima. Usa português de Portugal.`;
 
     // Chamar Hugging Face usando o novo endpoint OpenAI-compatible
     console.log('A chamar Hugging Face API...');
@@ -169,14 +169,14 @@ Responde em português de Portugal de forma clara e direta.`;
           messages: [
             {
               role: 'system',
-              content: 'És um assistente que analisa dados de questionários políticos portugueses.'
+              content: 'És um assistente prestável e conversacional. Podes responder perguntas gerais sobre ti e sobre os dados de questionários políticos que te são fornecidos. Sê natural, amigável e direto. Usa português de Portugal.'
             },
             {
               role: 'user',
               content: context
             }
           ],
-          max_tokens: 300,
+          max_tokens: 400,
           temperature: 0.7,
         }),
         signal: AbortSignal.timeout(25000), // 25 segundos timeout

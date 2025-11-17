@@ -104,7 +104,7 @@ export async function gerarSumarioComIA(): Promise<string | null> {
     const { ideaisCount, preocupacoesCount, temasCount, outrosIdeais, outrosPreocupacoes, outrosTemas, totalRespostas } = stats;
 
     // Criar prompt específico para sumário
-    const prompt = `Analisa os seguintes dados de ${totalRespostas} respostas a um questionário político português e cria um sumário executivo em 3-4 parágrafos:
+    const prompt = `Analisa os seguintes dados de ${totalRespostas} respostas a um questionário político e cria um sumário executivo em 3-4 parágrafos:
 
 Ideais mais valorizados:
 ${Object.entries(ideaisCount)
@@ -131,14 +131,16 @@ ${outrosIdeais.length > 0 ? `\nComentários sobre ideais:\n${outrosIdeais.slice(
 ${outrosPreocupacoes.length > 0 ? `\nComentários sobre preocupações:\n${outrosPreocupacoes.slice(0, 10).map(t => `- "${t}"`).join('\n')}` : ''}
 ${outrosTemas.length > 0 ? `\nComentários sobre temas:\n${outrosTemas.slice(0, 10).map(t => `- "${t}"`).join('\n')}` : ''}
 
-Cria um sumário executivo que:
-1. Identifique os padrões principais
-2. Destaque tendências importantes
-3. Mencione insights relevantes dos comentários
-4. Seja objetivo e factual
-5. Use português de Portugal
+Instruções:
+1. Identifica os padrões principais
+2. Destaca tendências importantes usando **negrito** para ênfase
+3. Menciona insights relevantes dos comentários
+4. Sê objetivo e factual
+5. Usa português de Portugal
+6. NÃO includes títulos ou cabeçalhos (como "Sumário Executivo")
+7. Responde APENAS com o texto do sumário, começando diretamente pela análise
 
-Responde apenas com o sumário, sem introduções.`;
+Formato de resposta: Texto direto em 3-4 parágrafos, usando **negrito** para destacar pontos-chave.`;
 
     // Chamar Hugging Face
     const hfResponse = await fetch(
@@ -154,7 +156,7 @@ Responde apenas com o sumário, sem introduções.`;
           messages: [
             {
               role: 'system',
-              content: 'És um analista político que cria sumários executivos claros e objetivos de dados de questionários.'
+              content: 'És um analista que cria sumários executivos claros e objetivos. Usas markdown para formatar texto (negrito com **texto**).'
             },
             {
               role: 'user',

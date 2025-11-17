@@ -49,6 +49,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deletePassword, setDeletePassword] = useState<string | null>(null);
+  const [authenticated, setAuthenticated] = useState(false);
   
   // Sumário IA
   const [sumario, setSumario] = useState<string | null>(null);
@@ -77,7 +78,29 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const token = searchParams.token;
   const tokenOk = token === process.env.NEXT_PUBLIC_ADMIN_TOKEN || token === 'debug';
 
+  // Verificar autenticação
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const savedAuth = sessionStorage.getItem('adminAuthenticated');
+    if (savedAuth === 'true') {
+      setAuthenticated(true);
+    } else {
+      // Pedir password
+      const password = prompt('Insere a password de acesso ao painel administrativo:');
+      if (password === '888888') {
+        sessionStorage.setItem('adminAuthenticated', 'true');
+        setAuthenticated(true);
+      } else {
+        alert('Password incorreta. Acesso negado.');
+        window.location.href = '/';
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!authenticated) return;
+    
     async function loadData() {
       setLoading(true);
       const result = await fetchRespostas(tokenOk);
@@ -85,7 +108,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
       setLoading(false);
     }
     loadData();
-  }, [tokenOk]);
+  }, [tokenOk, authenticated]);
 
   // Carregar password de delete do sessionStorage
   useEffect(() => {
@@ -375,6 +398,27 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     }
   };
 
+  const handleLogout = () => {
+    if (confirm('Terminar sessão? Terás que inserir a password novamente.')) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('adminAuthenticated');
+        sessionStorage.removeItem('deletePassword');
+      }
+      window.location.href = '/';
+    }
+  };
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">A verificar acesso...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4">
       <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8">
@@ -397,6 +441,16 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                 Autenticado
               </button>
             )}
+            <button
+              onClick={handleLogout}
+              className="text-xs px-3 py-1.5 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors flex items-center gap-1.5"
+              title="Terminar sessão"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Sair
+            </button>
             <a
               href="/"
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
@@ -460,7 +514,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                           </svg>
                         </div>
                         <div>
-                          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Sumário Executivo IA</h2>
+                          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Análise IA</h2>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
                             {sumarioTimestamp && (
                               <>Atualizado: {new Date(sumarioTimestamp).toLocaleString('pt-PT')} • </>
@@ -481,11 +535,16 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                         {loadingSumario ? 'A gerar...' : 'Atualizar'}
                       </button>
                     </div>
-                    <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
-                        {sumario}
-                      </p>
-                    </div>
+                    <div 
+                      className="text-gray-800 dark:text-gray-200 leading-relaxed"
+                      dangerouslySetInnerHTML={{ 
+                        __html: sumario
+                          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                          .replace(/\n\n/g, '</p><p class="mt-3">')
+                          .replace(/^(.+)$/m, '<p>$1')
+                          .concat('</p>')
+                      }}
+                    />
                   </div>
                 )}
 
