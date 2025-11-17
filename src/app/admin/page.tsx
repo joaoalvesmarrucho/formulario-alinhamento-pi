@@ -22,6 +22,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const [view, setView] = useState<'graficos' | 'respostas'>('graficos');
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const token = searchParams.token;
   const tokenOk = token === process.env.NEXT_PUBLIC_ADMIN_TOKEN || token === 'debug';
@@ -35,6 +36,32 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     }
     loadData();
   }, [tokenOk]);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Tens a certeza que queres apagar esta resposta? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/respostas/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        throw new Error('Erro ao apagar resposta');
+      }
+
+      // Recarregar os dados
+      const result = await fetchRespostas(tokenOk);
+      setData(result);
+    } catch (error) {
+      console.error('Erro ao apagar:', error);
+      alert('Erro ao apagar resposta. Tenta novamente.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Calcular estatísticas para os gráficos
   const stats = data?.respostas ? {
@@ -281,9 +308,25 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                             <p className="font-semibold text-gray-900 dark:text-gray-100">#{r.id} — {r.nome || 'Sem nome'}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">{r.recebidoEm}</p>
                           </div>
-                          {r.contacto && (
-                            <p className="text-xs text-gray-600 dark:text-gray-300">Contacto: {r.contacto}</p>
-                          )}
+                          <div className="flex items-center gap-3">
+                            {r.contacto && (
+                              <p className="text-xs text-gray-600 dark:text-gray-300">Contacto: {r.contacto}</p>
+                            )}
+                            <button
+                              onClick={() => handleDelete(r.id)}
+                              disabled={deletingId === r.id}
+                              className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              title="Apagar resposta"
+                            >
+                              {deletingId === r.id ? (
+                                <span className="text-xs">A apagar...</span>
+                              ) : (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
                         </div>
                         <div className="grid gap-3 text-sm text-gray-800 dark:text-gray-100 md:grid-cols-2">
                           <div>
