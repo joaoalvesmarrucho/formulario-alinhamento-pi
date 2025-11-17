@@ -92,12 +92,22 @@ Responde em português de Portugal de forma clara e objetiva, usando os dados ac
             return_full_text: false,
           },
         }),
+        signal: AbortSignal.timeout(30000), // 30 segundos timeout
       }
     );
 
     if (!hfResponse.ok) {
       const errorText = await hfResponse.text();
-      console.error('HF API Error:', errorText);
+      console.error('HF API Error:', hfResponse.status, errorText);
+      
+      // Se o modelo está a carregar (503), diz isso ao utilizador
+      if (hfResponse.status === 503) {
+        return NextResponse.json(
+          { error: 'O modelo está a carregar. Tenta novamente em 20 segundos.' },
+          { status: 503 }
+        );
+      }
+      
       return NextResponse.json(
         { error: 'Erro ao comunicar com o modelo IA' },
         { status: 500 }
@@ -105,11 +115,29 @@ Responde em português de Portugal de forma clara e objetiva, usando os dados ac
     }
 
     const result = await hfResponse.json();
+    
+    // Se a resposta for um array vazio ou não tiver o formato esperado
+    if (!result || !Array.isArray(result) || result.length === 0) {
+      console.error('Resposta inesperada do HF:', result);
+      return NextResponse.json(
+        { error: 'O modelo não conseguiu gerar uma resposta. Tenta reformular a pergunta.' },
+        { status: 500 }
+      );
+    }
+    
     const answer = result[0]?.generated_text || 'Não consegui gerar uma resposta.';
 
     return NextResponse.json({ answer });
   } catch (error) {
     console.error('Erro no chat:', error);
+    
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json(
+        { error: 'A resposta demorou muito tempo. O modelo pode estar sobrecarregado. Tenta novamente.' },
+        { status: 408 }
+      );
+    }
+    
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

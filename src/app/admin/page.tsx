@@ -84,17 +84,23 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
         body: JSON.stringify({ question: userMessage }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error('Erro ao obter resposta');
+        // Mostrar a mensagem de erro específica do servidor
+        setChatMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: `❌ ${data.error || 'Erro ao processar a pergunta.'}` },
+        ]);
+        return;
       }
 
-      const { answer } = await res.json();
-      setChatMessages(prev => [...prev, { role: 'assistant', content: answer }]);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
     } catch (error) {
       console.error('Erro no chat:', error);
       setChatMessages(prev => [
         ...prev,
-        { role: 'assistant', content: 'Erro ao processar a pergunta. Tenta novamente.' },
+        { role: 'assistant', content: '❌ Erro de rede. Verifica a tua ligação e tenta novamente.' },
       ]);
     } finally {
       setChatLoading(false);
