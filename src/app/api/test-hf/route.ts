@@ -16,8 +16,10 @@ export async function GET() {
     const testPrompt = 'Olá, como estás?';
     
     console.log('A chamar HF API...');
+    
+    // Tentar novo endpoint da Hugging Face
     const response = await fetch(
-      'https://router.huggingface.co/hf-inference/models/google/flan-t5-large',
+      'https://api-inference.huggingface.co/models/google/flan-t5-large',
       {
         method: 'POST',
         headers: {

@@ -121,7 +121,7 @@ Responde em português de Portugal de forma clara e direta.`;
     // Chamar Hugging Face Inference API com modelo mais rápido
     console.log('A chamar Hugging Face API...');
     const hfResponse = await fetch(
-      'https://router.huggingface.co/hf-inference/models/google/flan-t5-large',
+      'https://api-inference.huggingface.co/models/google/flan-t5-large',
       {
         method: 'POST',
         headers: {
