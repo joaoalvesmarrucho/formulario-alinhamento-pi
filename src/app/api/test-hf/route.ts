@@ -19,7 +19,7 @@ export async function GET() {
     
     // Tentar novo endpoint da Hugging Face
     const response = await fetch(
-      'https://api-inference.huggingface.co/models/google/flan-t5-large',
+      'https://api-inference.huggingface.co/google/flan-t5-large',
       {
         method: 'POST',
         headers: {
@@ -28,10 +28,6 @@ export async function GET() {
         },
         body: JSON.stringify({
           inputs: testPrompt,
-          parameters: {
-            max_new_tokens: 50,
-            temperature: 0.7,
-          },
         }),
         signal: AbortSignal.timeout(20000),
       }
