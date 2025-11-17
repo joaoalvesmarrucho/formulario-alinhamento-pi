@@ -70,38 +70,38 @@ export async function POST(req: NextRequest) {
     });
 
     // Criar contexto para o modelo
-    const context = `És um assistente que analisa dados de um questionário político português com ${respostas.length} respostas.
+    const context = `Tens acesso a ${respostas.length} respostas de um questionário político português.
 
-DADOS DISPONÍVEIS:
+Estatísticas dos dados:
 
 Ideais mais valorizados:
 ${Object.entries(ideaisCount)
   .sort(([, a], [, b]) => (b as number) - (a as number))
-  .slice(0, 10)
+  .slice(0, 5)
   .map(([item, count]) => `- ${item}: ${count} pessoas`)
   .join('\n')}
 
 Preocupações mais frequentes:
 ${Object.entries(preocupacoesCount)
   .sort(([, a], [, b]) => (b as number) - (a as number))
-  .slice(0, 10)
+  .slice(0, 5)
   .map(([item, count]) => `- ${item}: ${count} pessoas`)
   .join('\n')}
 
 Temas de maior interesse:
 ${Object.entries(temasCount)
   .sort(([, a], [, b]) => (b as number) - (a as number))
-  .slice(0, 10)
+  .slice(0, 5)
   .map(([item, count]) => `- ${item}: ${count} pessoas`)
   .join('\n')}
 
-PERGUNTA DO UTILIZADOR: ${question}
+Pergunta: ${question}
 
-Responde em português de Portugal de forma clara e objetiva, usando os dados acima. Se a pergunta não puder ser respondida com os dados disponíveis, diz isso claramente.`;
+Responde em português de Portugal de forma clara e direta.`;
 
-    // Chamar Hugging Face Inference API
+    // Chamar Hugging Face Inference API com modelo mais rápido
     const hfResponse = await fetch(
-      'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
+      'https://api-inference.huggingface.co/models/google/flan-t5-large',
       {
         method: 'POST',
         headers: {
@@ -111,13 +111,11 @@ Responde em português de Portugal de forma clara e objetiva, usando os dados ac
         body: JSON.stringify({
           inputs: context,
           parameters: {
-            max_new_tokens: 500,
+            max_new_tokens: 200,
             temperature: 0.7,
-            top_p: 0.95,
-            return_full_text: false,
           },
         }),
-        signal: AbortSignal.timeout(30000), // 30 segundos timeout
+        signal: AbortSignal.timeout(25000), // 25 segundos timeout
       }
     );
 
@@ -140,19 +138,28 @@ Responde em português de Portugal de forma clara e objetiva, usando os dados ac
     }
 
     const result = await hfResponse.json();
+    console.log('HF Response:', JSON.stringify(result).substring(0, 200));
     
-    // Se a resposta for um array vazio ou não tiver o formato esperado
-    if (!result || !Array.isArray(result) || result.length === 0) {
-      console.error('Resposta inesperada do HF:', result);
+    // O modelo flan-t5 retorna formato diferente
+    let answer = '';
+    
+    if (Array.isArray(result) && result.length > 0) {
+      // Mistral format: [{ generated_text: "..." }]
+      answer = result[0]?.generated_text || result[0]?.summary_text || '';
+    } else if (result && typeof result === 'object') {
+      // Flan-T5 format direto
+      answer = result.generated_text || result[0] || '';
+    }
+    
+    if (!answer || answer.trim().length === 0) {
+      console.error('Resposta vazia do HF:', result);
       return NextResponse.json(
         { error: 'O modelo não conseguiu gerar uma resposta. Tenta reformular a pergunta.' },
         { status: 500 }
       );
     }
-    
-    const answer = result[0]?.generated_text || 'Não consegui gerar uma resposta.';
 
-    return NextResponse.json({ answer });
+    return NextResponse.json({ answer: answer.trim() });
   } catch (error) {
     console.error('Erro no chat:', error);
     
