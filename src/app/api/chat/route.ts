@@ -118,10 +118,10 @@ Pergunta: ${question}
 
 Responde em português de Portugal de forma clara e direta.`;
 
-    // Chamar Hugging Face Inference API com modelo mais rápido
+    // Chamar Hugging Face usando o novo endpoint OpenAI-compatible
     console.log('A chamar Hugging Face API...');
     const hfResponse = await fetch(
-      'https://api-inference.huggingface.co/models/google/flan-t5-large',
+      'https://router.huggingface.co/v1/chat/completions',
       {
         method: 'POST',
         headers: {
@@ -129,11 +129,19 @@ Responde em português de Portugal de forma clara e direta.`;
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          inputs: context,
-          parameters: {
-            max_new_tokens: 200,
-            temperature: 0.7,
-          },
+          model: 'meta-llama/Llama-3.2-3B-Instruct',
+          messages: [
+            {
+              role: 'system',
+              content: 'És um assistente que analisa dados de questionários políticos portugueses.'
+            },
+            {
+              role: 'user',
+              content: context
+            }
+          ],
+          max_tokens: 300,
+          temperature: 0.7,
         }),
         signal: AbortSignal.timeout(25000), // 25 segundos timeout
       }
@@ -160,16 +168,8 @@ Responde em português de Portugal de forma clara e direta.`;
     const result = await hfResponse.json();
     console.log('HF Response:', JSON.stringify(result).substring(0, 200));
     
-    // O modelo flan-t5 retorna formato diferente
-    let answer = '';
-    
-    if (Array.isArray(result) && result.length > 0) {
-      // Mistral format: [{ generated_text: "..." }]
-      answer = result[0]?.generated_text || result[0]?.summary_text || '';
-    } else if (result && typeof result === 'object') {
-      // Flan-T5 format direto
-      answer = result.generated_text || result[0] || '';
-    }
+    // Formato OpenAI-compatible
+    const answer = result.choices?.[0]?.message?.content || '';
     
     if (!answer || answer.trim().length === 0) {
       console.error('Resposta vazia do HF:', result);
