@@ -19,10 +19,15 @@ interface AdminPageProps {
 }
 
 export default function AdminPage({ searchParams }: AdminPageProps) {
-  const [view, setView] = useState<'graficos' | 'respostas'>('graficos');
+  const [view, setView] = useState<'graficos' | 'respostas' | 'chat'>('graficos');
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  
+  // Chat states
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [chatLoading, setChatLoading] = useState(false);
 
   const token = searchParams.token;
   const tokenOk = token === process.env.NEXT_PUBLIC_ADMIN_TOKEN || token === 'debug';
@@ -60,6 +65,39 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
       alert('Erro ao apagar resposta. Tenta novamente.');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || chatLoading) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setChatLoading(true);
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: userMessage }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Erro ao obter resposta');
+      }
+
+      const { answer } = await res.json();
+      setChatMessages(prev => [...prev, { role: 'assistant', content: answer }]);
+    } catch (error) {
+      console.error('Erro no chat:', error);
+      setChatMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: 'Erro ao processar a pergunta. Tenta novamente.' },
+      ]);
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -153,6 +191,16 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                 }`}
               >
                 Respostas individuais
+              </button>
+              <button
+                onClick={() => setView('chat')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  view === 'chat'
+                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                Chat IA
               </button>
             </div>
 
@@ -417,6 +465,70 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                     );
                   })}
                 </div>
+              </div>
+            )}
+
+            {/* Vista de Chat IA */}
+            {view === 'chat' && (
+              <div className="flex flex-col h-[70vh]">
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Faz perguntas sobre os dados do formulário. Por exemplo: &quot;Qual é o ideal mais valorizado?&quot; ou &quot;Quantas pessoas escolheram Ecologia?&quot;
+                  </p>
+                </div>
+
+                {/* Chat messages */}
+                <div className="flex-1 overflow-y-auto mb-4 space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900/40">
+                  {chatMessages.length === 0 && (
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+                      Sem mensagens. Faz uma pergunta para começar!
+                    </p>
+                  )}
+                  
+                  {chatMessages.map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                          msg.role === 'user'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2">
+                        <p className="text-sm">A pensar...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Chat input */}
+                <form onSubmit={handleChatSubmit} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Faz uma pergunta sobre os dados..."
+                    disabled={chatLoading}
+                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={chatLoading || !chatInput.trim()}
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
+                  >
+                    Enviar
+                  </button>
+                </form>
               </div>
             )}
           </>
