@@ -50,6 +50,12 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deletePassword, setDeletePassword] = useState<string | null>(null);
   
+  // Sumário IA
+  const [sumario, setSumario] = useState<string | null>(null);
+  const [sumarioTimestamp, setSumarioTimestamp] = useState<string | null>(null);
+  const [sumarioTotal, setSumarioTotal] = useState<number>(0);
+  const [loadingSumario, setLoadingSumario] = useState(false);
+  
   // Hover states para sincronizar gráficos
   const [hoveredIdeal, setHoveredIdeal] = useState<string | null>(null);
   const [hoveredPreocupacao, setHoveredPreocupacao] = useState<string | null>(null);
@@ -79,6 +85,27 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
       setLoading(false);
     }
     loadData();
+  }, [tokenOk]);
+
+  // Carregar sumário IA
+  useEffect(() => {
+    async function loadSumario() {
+      if (!tokenOk) return;
+      
+      try {
+        const res = await fetch('/api/sumario');
+        const data = await res.json();
+        
+        if (data.sumario) {
+          setSumario(data.sumario);
+          setSumarioTimestamp(data.geradoEm);
+          setSumarioTotal(data.totalRespostas);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar sumário:', error);
+      }
+    }
+    loadSumario();
   }, [tokenOk]);
 
   // Calcular posição inicial do chat no canto inferior direito
@@ -196,6 +223,42 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
       alert('Erro ao apagar resposta. Tenta novamente.');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleRegenerarSumario = async () => {
+    if (!confirm('Gerar novo sumário? Isto pode demorar alguns segundos.')) {
+      return;
+    }
+
+    setLoadingSumario(true);
+    try {
+      const res = await fetch('/api/cron/gerar-sumario', {
+        headers: {
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || 'dev-secret'}`
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error('Erro ao gerar sumário');
+      }
+
+      // Recarregar sumário
+      const sumarioRes = await fetch('/api/sumario');
+      const sumarioData = await sumarioRes.json();
+      
+      if (sumarioData.sumario) {
+        setSumario(sumarioData.sumario);
+        setSumarioTimestamp(sumarioData.geradoEm);
+        setSumarioTotal(sumarioData.totalRespostas);
+      }
+
+      alert('Sumário gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao regenerar sumário:', error);
+      alert('Erro ao gerar sumário. Tenta novamente.');
+    } finally {
+      setLoadingSumario(false);
     }
   };
 
@@ -338,6 +401,46 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
             {/* Vista de Gráficos */}
             {view === 'graficos' && stats && (
               <div className="space-y-8">
+                {/* Sumário IA */}
+                {sumario && (
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-lg p-6 border-2 border-blue-200 dark:border-blue-800 shadow-lg">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-600 rounded-lg">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Sumário Executivo IA</h2>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {sumarioTimestamp && (
+                              <>Atualizado: {new Date(sumarioTimestamp).toLocaleString('pt-PT')} • </>
+                            )}
+                            {sumarioTotal} respostas analisadas
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleRegenerarSumario}
+                        disabled={loadingSumario}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:cursor-not-allowed"
+                        title="Regenerar sumário com dados atuais"
+                      >
+                        <svg className={`w-4 h-4 ${loadingSumario ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        {loadingSumario ? 'A gerar...' : 'Atualizar'}
+                      </button>
+                    </div>
+                    <div className="prose prose-sm max-w-none dark:prose-invert">
+                      <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
+                        {sumario}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between">
                   <p className="text-gray-700 dark:text-gray-200">
                     Total de respostas: <span className="font-semibold text-2xl">{stats.totalRespostas}</span>
