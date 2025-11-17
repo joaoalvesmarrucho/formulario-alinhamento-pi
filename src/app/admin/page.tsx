@@ -44,7 +44,7 @@ interface AdminPageProps {
 }
 
 export default function AdminPage({ searchParams }: AdminPageProps) {
-  const [view, setView] = useState<'graficos' | 'respostas' | 'chat'>('graficos');
+  const [view, setView] = useState<'graficos' | 'respostas'>('graficos');
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -55,7 +55,12 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const [hoveredTema, setHoveredTema] = useState<string | null>(null);
   const [hoveredTipo, setHoveredTipo] = useState<string | null>(null);
   
-  // Chat states
+  // Chat widget states
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMinimized, setChatMinimized] = useState(false);
+  const [chatPosition, setChatPosition] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const [chatLoading, setChatLoading] = useState(false);
@@ -72,6 +77,41 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     }
     loadData();
   }, [tokenOk]);
+
+  // Drag handlers para o chat widget
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.chat-content')) return; // Não arrastar se clicar no conteúdo
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - chatPosition.x,
+      y: e.clientY - chatPosition.y,
+    });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        setChatPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
 
   const handleDelete = async (id: number) => {
     if (!confirm('Tens a certeza que queres apagar esta resposta? Esta ação não pode ser desfeita.')) {
@@ -232,16 +272,6 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                 }`}
               >
                 Respostas individuais
-              </button>
-              <button
-                onClick={() => setView('chat')}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  view === 'chat'
-                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                }`}
-              >
-                Chat IA
               </button>
             </div>
 
@@ -704,73 +734,141 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                 </div>
               </div>
             )}
-
-            {/* Vista de Chat IA */}
-            {view === 'chat' && (
-              <div className="flex flex-col h-[70vh]">
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Faz perguntas sobre os dados do formulário. Por exemplo: &quot;Qual é o ideal mais valorizado?&quot; ou &quot;Quantas pessoas escolheram Ecologia?&quot;
-                  </p>
-                </div>
-
-                {/* Chat messages */}
-                <div className="flex-1 overflow-y-auto mb-4 space-y-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900/40">
-                  {chatMessages.length === 0 && (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                      Sem mensagens. Faz uma pergunta para começar!
-                    </p>
-                  )}
-                  
-                  {chatMessages.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                          msg.role === 'user'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                      </div>
-                    </div>
-                  ))}
-
-                  {chatLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2">
-                        <p className="text-sm">A pensar...</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Chat input */}
-                <form onSubmit={handleChatSubmit} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Faz uma pergunta sobre os dados..."
-                    disabled={chatLoading}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-                  />
-                  <button
-                    type="submit"
-                    disabled={chatLoading || !chatInput.trim()}
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
-                  >
-                    Enviar
-                  </button>
-                </form>
-              </div>
-            )}
           </>
         )}
       </div>
+
+      {/* Floating Chat Widget */}
+      {chatOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            left: `${chatPosition.x}px`,
+            top: `${chatPosition.y}px`,
+            zIndex: 1000,
+          }}
+          className={`bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-300 dark:border-gray-600 ${
+            chatMinimized ? 'w-80' : 'w-96'
+          }`}
+        >
+          {/* Header */}
+          <div
+            onMouseDown={handleMouseDown}
+            className="bg-blue-600 text-white px-4 py-3 rounded-t-lg cursor-move flex items-center justify-between select-none"
+          >
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+              <span className="font-medium">Chat IA</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setChatMinimized(!chatMinimized)}
+                className="hover:bg-blue-700 p-1 rounded transition-colors"
+                title={chatMinimized ? "Expandir" : "Minimizar"}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {chatMinimized ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  )}
+                </svg>
+              </button>
+              <button
+                onClick={() => setChatOpen(false)}
+                className="hover:bg-blue-700 p-1 rounded transition-colors"
+                title="Fechar"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          {!chatMinimized && (
+            <div className="chat-content p-4 flex flex-col" style={{ height: '500px' }}>
+              <div className="mb-3">
+                <p className="text-xs text-gray-600 dark:text-gray-300">
+                  Faz perguntas sobre os dados. Ex: &quot;Qual é o ideal mais valorizado?&quot;
+                </p>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto mb-3 space-y-3">
+                {chatMessages.length === 0 && (
+                  <p className="text-gray-400 dark:text-gray-500 text-center text-sm py-8">
+                    Sem mensagens. Faz uma pergunta!
+                  </p>
+                )}
+                
+                {chatMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+                        msg.role === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{msg.content}</p>
+                    </div>
+                  </div>
+                ))}
+
+                {chatLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">A pensar...</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input */}
+              <form onSubmit={handleChatSubmit} className="flex gap-2">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Pergunta..."
+                  disabled={chatLoading}
+                  className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                />
+                <button
+                  type="submit"
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
+                >
+                  Enviar
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Floating Chat Button */}
+      {!chatOpen && (
+        <button
+          onClick={() => {
+            setChatOpen(true);
+            setChatMinimized(false);
+          }}
+          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all hover:scale-110 z-50"
+          title="Abrir Chat IA"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }
