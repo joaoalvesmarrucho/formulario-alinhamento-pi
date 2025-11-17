@@ -38,6 +38,12 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   
+  // Hover states para sincronizar gráficos
+  const [hoveredIdeal, setHoveredIdeal] = useState<string | null>(null);
+  const [hoveredPreocupacao, setHoveredPreocupacao] = useState<string | null>(null);
+  const [hoveredTema, setHoveredTema] = useState<string | null>(null);
+  const [hoveredTipo, setHoveredTipo] = useState<string | null>(null);
+  
   // Chat states
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
@@ -242,19 +248,37 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                       <ResponsiveContainer width="100%" height="100%">
                         <RPieChart>
                           <Pie
-                            data={Object.entries(stats.ideaisCount).map(([name, value]) => ({ name, value }))}
+                            data={Object.entries(stats.ideaisCount)
+                              .sort(([, a], [, b]) => (b as number) - (a as number))
+                              .map(([name, value]) => ({ name, value }))}
                             dataKey="value"
                             nameKey="name"
                             innerRadius={50}
                             outerRadius={80}
                             paddingAngle={2}
+                            onMouseEnter={(data) => setHoveredIdeal(data.name)}
+                            onMouseLeave={() => setHoveredIdeal(null)}
                           >
-                            {Object.entries(stats.ideaisCount).map(([name], idx) => (
-                              <Cell key={name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                            ))}
+                            {Object.entries(stats.ideaisCount)
+                              .sort(([, a], [, b]) => (b as number) - (a as number))
+                              .map(([name], idx) => (
+                                <Cell 
+                                  key={name} 
+                                  fill={`rgb(59, 130, 246)`}
+                                  fillOpacity={hoveredIdeal === null || hoveredIdeal === name ? 1 - (idx * 0.08) : 0.3}
+                                  className="transition-opacity cursor-pointer"
+                                />
+                              ))}
                           </Pie>
-                          <Tooltip formatter={(v: any) => `${v} respostas`} />
-                          <Legend verticalAlign="bottom" height={24} />
+                          <Tooltip 
+                            formatter={(v: any) => `${v} respostas`}
+                            contentStyle={{ fontSize: '12px' }}
+                          />
+                          <Legend 
+                            verticalAlign="bottom" 
+                            height={24}
+                            wrapperStyle={{ fontSize: '11px' }}
+                          />
                         </RPieChart>
                       </ResponsiveContainer>
                     </div>
@@ -263,10 +287,17 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                     <div className="space-y-3 lg:col-span-8">
                       {Object.entries(stats.ideaisCount)
                         .sort(([, a], [, b]) => (b as number) - (a as number))
-                        .map(([item, count]) => {
+                        .map(([item, count], idx) => {
                           const percentage = ((count as number) / stats.totalRespostas) * 100;
+                          const isHovered = hoveredIdeal === item;
+                          const opacity = hoveredIdeal === null || isHovered ? 1 - (idx * 0.08) : 0.3;
                           return (
-                            <div key={item} className="space-y-1">
+                            <div 
+                              key={item} 
+                              className="space-y-1 cursor-pointer transition-opacity"
+                              onMouseEnter={() => setHoveredIdeal(item)}
+                              onMouseLeave={() => setHoveredIdeal(null)}
+                            >
                               <div className="flex justify-between text-sm">
                                 <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
                                 <span className="text-gray-600 dark:text-gray-400">
@@ -275,8 +306,12 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                               </div>
                               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                 <div
-                                  className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all"
-                                  style={{ width: `${percentage}%` }}
+                                  className="h-2 rounded-full transition-all"
+                                  style={{ 
+                                    width: `${percentage}%`,
+                                    backgroundColor: `rgb(59, 130, 246)`,
+                                    opacity: opacity
+                                  }}
                                 />
                               </div>
                             </div>
@@ -295,19 +330,37 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                       <ResponsiveContainer width="100%" height="100%">
                         <RPieChart>
                           <Pie
-                            data={Object.entries(stats.preocupacoesCount).map(([name, value]) => ({ name, value }))}
+                            data={Object.entries(stats.preocupacoesCount)
+                              .sort(([, a], [, b]) => (b as number) - (a as number))
+                              .map(([name, value]) => ({ name, value }))}
                             dataKey="value"
                             nameKey="name"
                             innerRadius={50}
                             outerRadius={80}
                             paddingAngle={2}
+                            onMouseEnter={(data) => setHoveredPreocupacao(data.name)}
+                            onMouseLeave={() => setHoveredPreocupacao(null)}
                           >
-                            {Object.entries(stats.preocupacoesCount).map(([name], idx) => (
-                              <Cell key={name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                            ))}
+                            {Object.entries(stats.preocupacoesCount)
+                              .sort(([, a], [, b]) => (b as number) - (a as number))
+                              .map(([name], idx) => (
+                                <Cell 
+                                  key={name} 
+                                  fill={`rgb(244, 63, 94)`}
+                                  fillOpacity={hoveredPreocupacao === null || hoveredPreocupacao === name ? 1 - (idx * 0.08) : 0.3}
+                                  className="transition-opacity cursor-pointer"
+                                />
+                              ))}
                           </Pie>
-                          <Tooltip formatter={(v: any) => `${v} respostas`} />
-                          <Legend verticalAlign="bottom" height={24} />
+                          <Tooltip 
+                            formatter={(v: any) => `${v} respostas`}
+                            contentStyle={{ fontSize: '12px' }}
+                          />
+                          <Legend 
+                            verticalAlign="bottom" 
+                            height={24}
+                            wrapperStyle={{ fontSize: '11px' }}
+                          />
                         </RPieChart>
                       </ResponsiveContainer>
                     </div>
@@ -316,10 +369,17 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                     <div className="space-y-3 lg:col-span-8">
                       {Object.entries(stats.preocupacoesCount)
                         .sort(([, a], [, b]) => (b as number) - (a as number))
-                        .map(([item, count]) => {
+                        .map(([item, count], idx) => {
                           const percentage = ((count as number) / stats.totalRespostas) * 100;
+                          const isHovered = hoveredPreocupacao === item;
+                          const opacity = hoveredPreocupacao === null || isHovered ? 1 - (idx * 0.08) : 0.3;
                           return (
-                            <div key={item} className="space-y-1">
+                            <div 
+                              key={item} 
+                              className="space-y-1 cursor-pointer transition-opacity"
+                              onMouseEnter={() => setHoveredPreocupacao(item)}
+                              onMouseLeave={() => setHoveredPreocupacao(null)}
+                            >
                               <div className="flex justify-between text-sm">
                                 <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
                                 <span className="text-gray-600 dark:text-gray-400">
@@ -328,8 +388,12 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                               </div>
                               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                 <div
-                                  className="bg-rose-600 dark:bg-rose-500 h-2 rounded-full transition-all"
-                                  style={{ width: `${percentage}%` }}
+                                  className="h-2 rounded-full transition-all"
+                                  style={{ 
+                                    width: `${percentage}%`,
+                                    backgroundColor: `rgb(244, 63, 94)`,
+                                    opacity: opacity
+                                  }}
                                 />
                               </div>
                             </div>
@@ -348,19 +412,37 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                       <ResponsiveContainer width="100%" height="100%">
                         <RPieChart>
                           <Pie
-                            data={Object.entries(stats.temasCount).map(([name, value]) => ({ name, value }))}
+                            data={Object.entries(stats.temasCount)
+                              .sort(([, a], [, b]) => (b as number) - (a as number))
+                              .map(([name, value]) => ({ name, value }))}
                             dataKey="value"
                             nameKey="name"
                             innerRadius={50}
                             outerRadius={80}
                             paddingAngle={2}
+                            onMouseEnter={(data) => setHoveredTema(data.name)}
+                            onMouseLeave={() => setHoveredTema(null)}
                           >
-                            {Object.entries(stats.temasCount).map(([name], idx) => (
-                              <Cell key={name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                            ))}
+                            {Object.entries(stats.temasCount)
+                              .sort(([, a], [, b]) => (b as number) - (a as number))
+                              .map(([name], idx) => (
+                                <Cell 
+                                  key={name} 
+                                  fill={`rgb(16, 185, 129)`}
+                                  fillOpacity={hoveredTema === null || hoveredTema === name ? 1 - (idx * 0.08) : 0.3}
+                                  className="transition-opacity cursor-pointer"
+                                />
+                              ))}
                           </Pie>
-                          <Tooltip formatter={(v: any) => `${v} respostas`} />
-                          <Legend verticalAlign="bottom" height={24} />
+                          <Tooltip 
+                            formatter={(v: any) => `${v} respostas`}
+                            contentStyle={{ fontSize: '12px' }}
+                          />
+                          <Legend 
+                            verticalAlign="bottom" 
+                            height={24}
+                            wrapperStyle={{ fontSize: '11px' }}
+                          />
                         </RPieChart>
                       </ResponsiveContainer>
                     </div>
@@ -369,10 +451,17 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                     <div className="space-y-3 lg:col-span-8">
                       {Object.entries(stats.temasCount)
                         .sort(([, a], [, b]) => (b as number) - (a as number))
-                        .map(([item, count]) => {
+                        .map(([item, count], idx) => {
                           const percentage = ((count as number) / stats.totalRespostas) * 100;
+                          const isHovered = hoveredTema === item;
+                          const opacity = hoveredTema === null || isHovered ? 1 - (idx * 0.08) : 0.3;
                           return (
-                            <div key={item} className="space-y-1">
+                            <div 
+                              key={item} 
+                              className="space-y-1 cursor-pointer transition-opacity"
+                              onMouseEnter={() => setHoveredTema(item)}
+                              onMouseLeave={() => setHoveredTema(null)}
+                            >
                               <div className="flex justify-between text-sm">
                                 <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
                                 <span className="text-gray-600 dark:text-gray-400">
@@ -381,8 +470,12 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                               </div>
                               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                 <div
-                                  className="bg-emerald-600 dark:bg-emerald-500 h-2 rounded-full transition-all"
-                                  style={{ width: `${percentage}%` }}
+                                  className="h-2 rounded-full transition-all"
+                                  style={{ 
+                                    width: `${percentage}%`,
+                                    backgroundColor: `rgb(16, 185, 129)`,
+                                    opacity: opacity
+                                  }}
                                 />
                               </div>
                             </div>
@@ -402,19 +495,37 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                         <ResponsiveContainer width="100%" height="100%">
                           <RPieChart>
                             <Pie
-                              data={Object.entries(stats.tipoParticipacaoCount).map(([name, value]) => ({ name, value }))}
+                              data={Object.entries(stats.tipoParticipacaoCount)
+                                .sort(([, a], [, b]) => (b as number) - (a as number))
+                                .map(([name, value]) => ({ name, value }))}
                               dataKey="value"
                               nameKey="name"
                               innerRadius={50}
                               outerRadius={80}
                               paddingAngle={2}
+                              onMouseEnter={(data) => setHoveredTipo(data.name)}
+                              onMouseLeave={() => setHoveredTipo(null)}
                             >
-                              {Object.entries(stats.tipoParticipacaoCount).map(([name], idx) => (
-                                <Cell key={name} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                              ))}
+                              {Object.entries(stats.tipoParticipacaoCount)
+                                .sort(([, a], [, b]) => (b as number) - (a as number))
+                                .map(([name], idx) => (
+                                  <Cell 
+                                    key={name} 
+                                    fill={`rgb(139, 92, 246)`}
+                                    fillOpacity={hoveredTipo === null || hoveredTipo === name ? 1 - (idx * 0.08) : 0.3}
+                                    className="transition-opacity cursor-pointer"
+                                  />
+                                ))}
                             </Pie>
-                            <Tooltip formatter={(v: any) => `${v} respostas`} />
-                            <Legend verticalAlign="bottom" height={24} />
+                            <Tooltip 
+                              formatter={(v: any) => `${v} respostas`}
+                              contentStyle={{ fontSize: '12px' }}
+                            />
+                            <Legend 
+                              verticalAlign="bottom" 
+                              height={24}
+                              wrapperStyle={{ fontSize: '11px' }}
+                            />
                           </RPieChart>
                         </ResponsiveContainer>
                       </div>
@@ -423,10 +534,17 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                       <div className="space-y-3 lg:col-span-8">
                         {Object.entries(stats.tipoParticipacaoCount)
                           .sort(([, a], [, b]) => (b as number) - (a as number))
-                          .map(([item, count]) => {
+                          .map(([item, count], idx) => {
                             const percentage = ((count as number) / stats.totalRespostas) * 100;
+                            const isHovered = hoveredTipo === item;
+                            const opacity = hoveredTipo === null || isHovered ? 1 - (idx * 0.08) : 0.3;
                             return (
-                              <div key={item} className="space-y-1">
+                              <div 
+                                key={item} 
+                                className="space-y-1 cursor-pointer transition-opacity"
+                                onMouseEnter={() => setHoveredTipo(item)}
+                                onMouseLeave={() => setHoveredTipo(null)}
+                              >
                                 <div className="flex justify-between text-sm">
                                   <span className="text-gray-700 dark:text-gray-200 font-medium">{item}</span>
                                   <span className="text-gray-600 dark:text-gray-400">
@@ -435,8 +553,12 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                                 </div>
                                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                   <div
-                                    className="bg-purple-600 dark:bg-purple-500 h-2 rounded-full transition-all"
-                                    style={{ width: `${percentage}%` }}
+                                    className="h-2 rounded-full transition-all"
+                                    style={{ 
+                                      width: `${percentage}%`,
+                                      backgroundColor: `rgb(139, 92, 246)`,
+                                      opacity: opacity
+                                    }}
                                   />
                                 </div>
                               </div>

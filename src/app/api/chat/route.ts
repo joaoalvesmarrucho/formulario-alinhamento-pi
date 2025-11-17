@@ -42,8 +42,11 @@ export async function POST(req: NextRequest) {
           id,
           nome,
           ideais,
+          outros_ideais,
           preocupacoes,
+          outros_preocupacoes,
           temas,
+          outros_temas,
           tipo_participacao as "tipoParticipacao"
         FROM respostas
       `;
@@ -69,6 +72,11 @@ export async function POST(req: NextRequest) {
     const preocupacoesCount: Record<string, number> = {};
     const temasCount: Record<string, number> = {};
     
+    // Recolher respostas de texto livre
+    const outrosIdeais: string[] = [];
+    const outrosPreocupacoes: string[] = [];
+    const outrosTemas: string[] = [];
+    
     respostas.forEach((r: any) => {
       const ideais = Array.isArray(r.ideais) ? r.ideais : [];
       const preocupacoes = Array.isArray(r.preocupacoes) ? r.preocupacoes : [];
@@ -85,6 +93,17 @@ export async function POST(req: NextRequest) {
       temas.forEach((item: string) => {
         temasCount[item] = (temasCount[item] || 0) + 1;
       });
+      
+      // Recolher respostas de texto
+      if (r.outros_ideais && r.outros_ideais.trim()) {
+        outrosIdeais.push(r.outros_ideais.trim());
+      }
+      if (r.outros_preocupacoes && r.outros_preocupacoes.trim()) {
+        outrosPreocupacoes.push(r.outros_preocupacoes.trim());
+      }
+      if (r.outros_temas && r.outros_temas.trim()) {
+        outrosTemas.push(r.outros_temas.trim());
+      }
     });
 
     // Criar contexto para o modelo
@@ -99,6 +118,7 @@ ${Object.entries(ideaisCount)
   .slice(0, 5)
   .map(([item, count]) => `- ${item}: ${count} pessoas`)
   .join('\n')}
+${outrosIdeais.length > 0 ? `\nOutros ideais mencionados em texto livre:\n${outrosIdeais.map(t => `- "${t}"`).join('\n')}` : ''}
 
 Preocupações mais frequentes:
 ${Object.entries(preocupacoesCount)
@@ -106,6 +126,7 @@ ${Object.entries(preocupacoesCount)
   .slice(0, 5)
   .map(([item, count]) => `- ${item}: ${count} pessoas`)
   .join('\n')}
+${outrosPreocupacoes.length > 0 ? `\nOutras preocupações mencionadas em texto livre:\n${outrosPreocupacoes.map(t => `- "${t}"`).join('\n')}` : ''}
 
 Temas de maior interesse:
 ${Object.entries(temasCount)
@@ -113,6 +134,7 @@ ${Object.entries(temasCount)
   .slice(0, 5)
   .map(([item, count]) => `- ${item}: ${count} pessoas`)
   .join('\n')}
+${outrosTemas.length > 0 ? `\nOutros temas mencionados em texto livre:\n${outrosTemas.map(t => `- "${t}"`).join('\n')}` : ''}
 
 Pergunta: ${question}
 
