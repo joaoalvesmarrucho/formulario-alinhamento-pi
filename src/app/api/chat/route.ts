@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
+}
+
 export async function POST(req: NextRequest) {
+  console.log('=== CHAT ENDPOINT INICIADO ===');
   try {
     const { question } = await req.json();
+    console.log('Pergunta recebida:', question);
 
     if (!question || typeof question !== 'string') {
       return NextResponse.json({ error: 'Pergunta inválida' }, { status: 400 });
     }
 
     // Verificar se a API key do Hugging Face está configurada
-    if (!process.env.HUGGINGFACE_API_KEY) {
+    const hasApiKey = !!process.env.HUGGINGFACE_API_KEY;
+    console.log('API Key presente:', hasApiKey);
+    
+    if (!hasApiKey) {
       console.error('HUGGINGFACE_API_KEY não está configurada');
       return NextResponse.json(
         { error: 'Configuração do chat IA incompleta. Contacta o administrador.' },
@@ -20,6 +35,7 @@ export async function POST(req: NextRequest) {
 
     // Buscar todas as respostas da base de dados
     let respostas;
+    console.log('A buscar respostas da BD...');
     try {
       respostas = await sql`
         SELECT 
@@ -31,6 +47,7 @@ export async function POST(req: NextRequest) {
           tipo_participacao as "tipoParticipacao"
         FROM respostas
       `;
+      console.log('Respostas encontradas:', respostas.length);
     } catch (dbError) {
       console.error('Erro ao buscar respostas:', dbError);
       return NextResponse.json(
@@ -47,6 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Preparar estatísticas resumidas para o modelo
+    console.log('A processar estatísticas...');
     const ideaisCount: Record<string, number> = {};
     const preocupacoesCount: Record<string, number> = {};
     const temasCount: Record<string, number> = {};
@@ -70,6 +88,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Criar contexto para o modelo
+    console.log('A criar contexto para IA...');
     const context = `Tens acesso a ${respostas.length} respostas de um questionário político português.
 
 Estatísticas dos dados:
@@ -100,6 +119,7 @@ Pergunta: ${question}
 Responde em português de Portugal de forma clara e direta.`;
 
     // Chamar Hugging Face Inference API com modelo mais rápido
+    console.log('A chamar Hugging Face API...');
     const hfResponse = await fetch(
       'https://api-inference.huggingface.co/models/google/flan-t5-large',
       {
@@ -161,7 +181,10 @@ Responde em português de Portugal de forma clara e direta.`;
 
     return NextResponse.json({ answer: answer.trim() });
   } catch (error) {
-    console.error('Erro no chat:', error);
+    console.error('=== ERRO NO CHAT ===');
+    console.error('Tipo:', error instanceof Error ? error.name : typeof error);
+    console.error('Mensagem:', error instanceof Error ? error.message : error);
+    console.error('Stack:', error instanceof Error ? error.stack : 'N/A');
     
     if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json(
