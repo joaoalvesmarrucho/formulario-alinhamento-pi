@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
+// Mapeamento para corrigir labels da base de dados
+const LABEL_MAPPING: Record<string, string> = {
+  'Individualismo': 'Individualidade',
+  // Adiciona aqui mais correções se necessário
+};
+
+// Função para normalizar labels
+const normalizeLabel = (label: string): string => {
+  return LABEL_MAPPING[label] || label;
+};
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     headers: {
@@ -83,15 +94,18 @@ export async function POST(req: NextRequest) {
       const temas = Array.isArray(r.temas) ? r.temas : [];
       
       ideais.forEach((item: string) => {
-        ideaisCount[item] = (ideaisCount[item] || 0) + 1;
+        const normalizedItem = normalizeLabel(item);
+        ideaisCount[normalizedItem] = (ideaisCount[normalizedItem] || 0) + 1;
       });
       
       preocupacoes.forEach((item: string) => {
-        preocupacoesCount[item] = (preocupacoesCount[item] || 0) + 1;
+        const normalizedItem = normalizeLabel(item);
+        preocupacoesCount[normalizedItem] = (preocupacoesCount[normalizedItem] || 0) + 1;
       });
       
       temas.forEach((item: string) => {
-        temasCount[item] = (temasCount[item] || 0) + 1;
+        const normalizedItem = normalizeLabel(item);
+        temasCount[normalizedItem] = (temasCount[normalizedItem] || 0) + 1;
       });
       
       // Recolher respostas de texto
