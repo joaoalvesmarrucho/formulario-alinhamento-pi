@@ -9,17 +9,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Pergunta inválida' }, { status: 400 });
     }
 
+    // Verificar se a API key do Hugging Face está configurada
+    if (!process.env.HUGGINGFACE_API_KEY) {
+      console.error('HUGGINGFACE_API_KEY não está configurada');
+      return NextResponse.json(
+        { error: 'Configuração do chat IA incompleta. Contacta o administrador.' },
+        { status: 500 }
+      );
+    }
+
     // Buscar todas as respostas da base de dados
-    const respostas = await sql`
-      SELECT 
-        id,
-        nome,
-        ideais,
-        preocupacoes,
-        temas,
-        tipo_participacao as "tipoParticipacao"
-      FROM respostas
-    `;
+    let respostas;
+    try {
+      respostas = await sql`
+        SELECT 
+          id,
+          nome,
+          ideais,
+          preocupacoes,
+          temas,
+          tipo_participacao as "tipoParticipacao"
+        FROM respostas
+      `;
+    } catch (dbError) {
+      console.error('Erro ao buscar respostas:', dbError);
+      return NextResponse.json(
+        { error: 'Erro ao aceder à base de dados.' },
+        { status: 500 }
+      );
+    }
+
+    // Se não houver respostas, informar o utilizador
+    if (!respostas || respostas.length === 0) {
+      return NextResponse.json({
+        answer: 'Ainda não há respostas no formulário. Quando alguém submeter uma resposta, poderei analisar os dados!'
+      });
+    }
 
     // Preparar estatísticas resumidas para o modelo
     const ideaisCount: Record<string, number> = {};
