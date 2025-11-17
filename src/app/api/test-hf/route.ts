@@ -17,7 +17,7 @@ export async function GET() {
     
     console.log('A chamar HF API...');
     const response = await fetch(
-      'https://api-inference.huggingface.co/models/google/flan-t5-large',
+      'https://router.huggingface.co/hf-inference/models/google/flan-t5-large',
       {
         method: 'POST',
         headers: {
