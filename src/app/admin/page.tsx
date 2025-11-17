@@ -87,6 +87,16 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     loadData();
   }, [tokenOk]);
 
+  // Carregar password de delete do sessionStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedPassword = sessionStorage.getItem('deletePassword');
+      if (savedPassword) {
+        setDeletePassword(savedPassword);
+      }
+    }
+  }, []);
+
   // Carregar sumário IA
   useEffect(() => {
     async function loadSumario() {
@@ -185,21 +195,36 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   }, [isDragging, dragOffset]);
 
   const handleDelete = async (id: number) => {
-    // Pedir password especial para apagar
-    const password = deletePassword || prompt('Insere a password de administração para apagar respostas:');
+    // Verificar se já tem password guardada no sessionStorage
+    let password = deletePassword;
     
+    if (!password && typeof window !== 'undefined') {
+      password = sessionStorage.getItem('deletePassword');
+      if (password) {
+        setDeletePassword(password);
+      }
+    }
+    
+    // Se ainda não tem, pedir
     if (!password) {
-      return; // Cancelado
-    }
+      password = prompt('Insere a password de administração para apagar respostas:');
+      
+      if (!password) {
+        return; // Cancelado
+      }
 
-    // Verificar password (deve ser diferente da password de acesso)
-    if (password !== '666666') { // 6 seis
-      alert('Password incorreta. Não tens permissão para apagar respostas.');
-      return;
-    }
+      // Verificar password (deve ser diferente da password de acesso)
+      if (password !== '666666') { // 6 seis
+        alert('Password incorreta. Não tens permissão para apagar respostas.');
+        return;
+      }
 
-    // Guardar password na sessão para não pedir novamente
-    setDeletePassword(password);
+      // Guardar password na sessão do browser e no estado
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('deletePassword', password);
+      }
+      setDeletePassword(password);
+    }
 
     if (!confirm('Tens a certeza que queres apagar esta resposta? Esta ação não pode ser desfeita.')) {
       return;
@@ -341,6 +366,15 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     });
   }
 
+  const handleClearDeletePassword = () => {
+    if (confirm('Esquecer password de eliminação? Será pedida novamente ao apagar a próxima resposta.')) {
+      setDeletePassword(null);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('deletePassword');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4">
       <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8">
@@ -350,12 +384,26 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
             <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-50">Respostas</h1>
             <p className="text-sm text-gray-500 dark:text-gray-300">Visão geral das respostas submetidas.</p>
           </div>
-          <a
-            href="/"
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
-          >
-            ← Voltar ao formulário
-          </a>
+          <div className="flex items-center gap-3">
+            {deletePassword && (
+              <button
+                onClick={handleClearDeletePassword}
+                className="text-xs px-3 py-1.5 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 rounded-md hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors flex items-center gap-1.5"
+                title="Esquecer password de eliminação"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Autenticado
+              </button>
+            )}
+            <a
+              href="/"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
+            >
+              ← Voltar ao formulário
+            </a>
+          </div>
         </div>
 
         {!tokenOk && (
