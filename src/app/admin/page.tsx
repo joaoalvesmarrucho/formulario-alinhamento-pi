@@ -48,8 +48,8 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [deletePassword, setDeletePassword] = useState<string | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
+  const [canDelete, setCanDelete] = useState(false);
   
   // Sumário IA
   const [sumario, setSumario] = useState<string | null>(null);
@@ -78,19 +78,21 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const token = searchParams.token;
   const tokenOk = token === process.env.NEXT_PUBLIC_ADMIN_TOKEN || token === 'debug';
 
-  // Verificar autenticação
+  // Verificar autenticação (uma só vez)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    const savedAuth = sessionStorage.getItem('adminAuthenticated');
-    if (savedAuth === 'true') {
+    const savedAuth = sessionStorage.getItem('adminPassword');
+    if (savedAuth === '888888' || savedAuth === '666666') {
       setAuthenticated(true);
+      setCanDelete(savedAuth === '666666');
     } else {
-      // Pedir password
+      // Pedir password UMA vez
       const password = prompt('Insere a password de acesso ao painel administrativo:');
-      if (password === '888888') {
-        sessionStorage.setItem('adminAuthenticated', 'true');
+      if (password === '888888' || password === '666666') {
+        sessionStorage.setItem('adminPassword', password);
         setAuthenticated(true);
+        setCanDelete(password === '666666');
       } else {
         alert('Password incorreta. Acesso negado.');
         window.location.href = '/';
@@ -109,16 +111,6 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     }
     loadData();
   }, [tokenOk, authenticated]);
-
-  // Carregar password de delete do sessionStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedPassword = sessionStorage.getItem('deletePassword');
-      if (savedPassword) {
-        setDeletePassword(savedPassword);
-      }
-    }
-  }, []);
 
   // Carregar sumário IA
   useEffect(() => {
@@ -218,35 +210,10 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   }, [isDragging, dragOffset]);
 
   const handleDelete = async (id: number) => {
-    // Verificar se já tem password guardada no sessionStorage
-    let password = deletePassword;
-    
-    if (!password && typeof window !== 'undefined') {
-      password = sessionStorage.getItem('deletePassword');
-      if (password) {
-        setDeletePassword(password);
-      }
-    }
-    
-    // Se ainda não tem, pedir
-    if (!password) {
-      password = prompt('Insere a password de administração para apagar respostas:');
-      
-      if (!password) {
-        return; // Cancelado
-      }
-
-      // Verificar password (deve ser diferente da password de acesso)
-      if (password !== '666666') { // 6 seis
-        alert('Password incorreta. Não tens permissão para apagar respostas.');
-        return;
-      }
-
-      // Guardar password na sessão do browser e no estado
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('deletePassword', password);
-      }
-      setDeletePassword(password);
+    // Verificar se tem permissão para apagar
+    if (!canDelete) {
+      alert('Não tens permissão para apagar respostas. Usa a password 666666 ao entrar no painel.');
+      return;
     }
 
     if (!confirm('Tens a certeza que queres apagar esta resposta? Esta ação não pode ser desfeita.')) {
@@ -389,25 +356,6 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     });
   }
 
-  const handleClearDeletePassword = () => {
-    if (confirm('Esquecer password de eliminação? Será pedida novamente ao apagar a próxima resposta.')) {
-      setDeletePassword(null);
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('deletePassword');
-      }
-    }
-  };
-
-  const handleLogout = () => {
-    if (confirm('Terminar sessão? Terás que inserir a password novamente.')) {
-      if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('adminAuthenticated');
-        sessionStorage.removeItem('deletePassword');
-      }
-      window.location.href = '/';
-    }
-  };
-
   if (!authenticated) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -429,28 +377,14 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
             <p className="text-sm text-gray-500 dark:text-gray-300">Visão geral das respostas submetidas.</p>
           </div>
           <div className="flex items-center gap-3">
-            {deletePassword && (
-              <button
-                onClick={handleClearDeletePassword}
-                className="text-xs px-3 py-1.5 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 rounded-md hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors flex items-center gap-1.5"
-                title="Esquecer password de eliminação"
-              >
+            {canDelete && (
+              <span className="text-xs px-3 py-1.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-md flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Autenticado
-              </button>
+                Permissões de eliminação
+              </span>
             )}
-            <button
-              onClick={handleLogout}
-              className="text-xs px-3 py-1.5 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors flex items-center gap-1.5"
-              title="Terminar sessão"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Sair
-            </button>
             <a
               href="/"
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
