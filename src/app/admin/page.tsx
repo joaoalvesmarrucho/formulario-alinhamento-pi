@@ -50,6 +50,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
   const [canDelete, setCanDelete] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   
   // Sumário IA
   const [sumario, setSumario] = useState<string | null>(null);
@@ -80,7 +81,9 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
 
   // Verificar autenticação (uma só vez)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || authChecked) return;
+    
+    setAuthChecked(true);
     
     const savedAuth = sessionStorage.getItem('adminPassword');
     if (savedAuth === '888888' || savedAuth === '666666') {
@@ -98,7 +101,7 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
         window.location.href = '/';
       }
     }
-  }, []);
+  }, [authChecked]);
 
   useEffect(() => {
     if (!authenticated) return;
@@ -210,9 +213,8 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
   }, [isDragging, dragOffset]);
 
   const handleDelete = async (id: number) => {
-    // Verificar se tem permissão para apagar
+    // Verificar se tem permissão para apagar (não deve chegar aqui se não tiver, mas por segurança)
     if (!canDelete) {
-      alert('Não tens permissão para apagar respostas. Usa a password 666666 ao entrar no painel.');
       return;
     }
 
@@ -831,20 +833,22 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
                             {r.contacto && (
                               <p className="text-xs text-gray-600 dark:text-gray-300">Contacto: {r.contacto}</p>
                             )}
-                            <button
-                              onClick={() => handleDelete(r.id)}
-                              disabled={deletingId === r.id}
-                              className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                              title="Apagar resposta"
-                            >
-                              {deletingId === r.id ? (
-                                <span className="text-xs">A apagar...</span>
-                              ) : (
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              )}
-                            </button>
+                            {canDelete && (
+                              <button
+                                onClick={() => handleDelete(r.id)}
+                                disabled={deletingId === r.id}
+                                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                title="Apagar resposta"
+                              >
+                                {deletingId === r.id ? (
+                                  <span className="text-xs">A apagar...</span>
+                                ) : (
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                )}
+                              </button>
+                            )}
                           </div>
                         </div>
                         <div className="grid gap-3 text-sm text-gray-800 dark:text-gray-100 md:grid-cols-2">

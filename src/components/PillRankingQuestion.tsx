@@ -56,7 +56,7 @@ export default function PillRankingQuestion({
     
     return parts.map((part, i) => {
       if (regex.test(part)) {
-        return <mark key={i} className="bg-yellow-300 dark:bg-yellow-600 font-semibold">{part}</mark>;
+        return <mark key={i} className="bg-yellow-400 dark:bg-yellow-500 text-gray-900 dark:text-gray-900 font-semibold rounded px-0.5">{part}</mark>;
       }
       return part;
     });
@@ -244,10 +244,8 @@ export default function PillRankingQuestion({
 
         {/* No matches - will create custom */}
         {searchText.trim() && matchingItems.length === 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-600 rounded-lg shadow-lg px-4 py-3">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
-              💡 Pressiona <kbd className="px-2 py-0.5 bg-amber-200 dark:bg-amber-800 rounded font-mono text-xs">Enter</kbd> para adicionar &ldquo;{searchText}&rdquo; como opção personalizada
-            </p>
+          <div className="mt-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400">
+            Pressiona <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs font-mono">Enter</kbd> para adicionar <strong className="text-gray-900 dark:text-gray-100">{searchText}</strong>
           </div>
         )}
       </div>
@@ -267,7 +265,7 @@ export default function PillRankingQuestion({
               onClick={() => handleClick(item)}
               className={`px-4 py-2.5 rounded-full font-medium transition-all ${
                 isHighlighted
-                  ? 'bg-yellow-200 dark:bg-yellow-700 text-gray-900 dark:text-gray-100 ring-2 ring-yellow-400 dark:ring-yellow-500 shadow-md scale-105'
+                  ? 'bg-blue-500 dark:bg-blue-600 text-white ring-2 ring-blue-300 dark:ring-blue-400 shadow-md scale-105'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-sm'
               }`}
             >
