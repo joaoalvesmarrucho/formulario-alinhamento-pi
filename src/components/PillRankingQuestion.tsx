@@ -82,7 +82,14 @@ export default function PillRankingQuestion({
         return;
       }
 
-      // No match found - create custom pill with AI spelling correction
+      // No match found - create custom pill (skip AI correction for speed)
+      // Simply add the text as entered
+      onChange([...value, searchText.trim()]);
+      setSearchText('');
+      setHighlightedIndex(-1);
+      return;
+      
+      /* AI correction disabled for performance - was causing 3+ second delays
       setIsProcessingCustom(true);
       try {
         const corrected = await correctSpelling(searchText.trim());
@@ -98,6 +105,7 @@ export default function PillRankingQuestion({
       } finally {
         setIsProcessingCustom(false);
       }
+      */
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       setHighlightedIndex(prev => 
@@ -113,20 +121,31 @@ export default function PillRankingQuestion({
   };
 
   const correctSpelling = async (text: string): Promise<string> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+
     try {
       const response = await fetch('/api/correct-spelling', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Spelling correction failed');
 
       const data = await response.json();
       return data.corrected || text;
     } catch (error) {
-      console.error('Spelling correction error:', error);
-      return text; // Return original if correction fails
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Spelling correction timeout - using original text');
+      } else {
+        console.error('Spelling correction error:', error);
+      }
+      return text; // Return original if correction fails or times out
     }
   };
 

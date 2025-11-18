@@ -387,6 +387,11 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
             <p className="text-sm text-gray-500 dark:text-gray-300">Visão geral das respostas submetidas.</p>
           </div>
           <div className="flex items-center gap-3">
+            {/* Debug info - temporary */}
+            <div className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">
+              Auth: {authenticated ? '✓' : '✗'} | Delete: {canDelete ? '✓' : '✗'} | Pass: {typeof window !== 'undefined' ? sessionStorage.getItem('adminPassword') : 'N/A'}
+            </div>
+            
             {canDelete && (
               <span className="text-xs px-3 py-1.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-md flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
