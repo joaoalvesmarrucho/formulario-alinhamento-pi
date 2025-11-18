@@ -85,27 +85,20 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     
     setAuthChecked(true);
     
-    const savedAuth = sessionStorage.getItem('adminPassword');
-    console.log('Auth check - savedAuth:', savedAuth);
+    // SEMPRE limpar sessão anterior ao entrar no admin
+    // Isso garante que a password seja sempre pedida fresh
+    sessionStorage.removeItem('adminPassword');
     
-    if (savedAuth === '888888' || savedAuth === '666666') {
+    // Pedir password
+    const password = prompt('Insere a password de acesso ao painel administrativo:');
+    
+    if (password === '888888' || password === '666666') {
+      sessionStorage.setItem('adminPassword', password);
       setAuthenticated(true);
-      setCanDelete(savedAuth === '666666');
-      console.log('Auth from session - canDelete:', savedAuth === '666666');
+      setCanDelete(password === '666666');
     } else {
-      // Pedir password UMA vez
-      const password = prompt('Insere a password de acesso ao painel administrativo:');
-      console.log('Password entered:', password);
-      
-      if (password === '888888' || password === '666666') {
-        sessionStorage.setItem('adminPassword', password);
-        setAuthenticated(true);
-        setCanDelete(password === '666666');
-        console.log('Auth from prompt - canDelete:', password === '666666');
-      } else {
-        alert('Password incorreta. Acesso negado.');
-        window.location.href = '/';
-      }
+      alert('Password incorreta. Acesso negado.');
+      window.location.href = '/';
     }
   }, [authChecked]);
 
@@ -375,8 +368,6 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     );
   }
 
-  console.log('Render - authenticated:', authenticated, 'canDelete:', canDelete);
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4">
       <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8">
@@ -387,24 +378,6 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
             <p className="text-sm text-gray-500 dark:text-gray-300">Visão geral das respostas submetidas.</p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Debug info - temporary */}
-            <div className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">
-              Auth: {authenticated ? '✓' : '✗'} | Delete: {canDelete ? '✓' : '✗'} | Pass: {typeof window !== 'undefined' ? sessionStorage.getItem('adminPassword') : 'N/A'}
-            </div>
-            
-            {/* Clear session button */}
-            <button
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  sessionStorage.removeItem('adminPassword');
-                  window.location.reload();
-                }
-              }}
-              className="text-xs px-3 py-1.5 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
-            >
-              Limpar sessão
-            </button>
-            
             {canDelete && (
               <span className="text-xs px-3 py-1.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-md flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
