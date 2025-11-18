@@ -86,16 +86,22 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
     setAuthChecked(true);
     
     const savedAuth = sessionStorage.getItem('adminPassword');
+    console.log('Auth check - savedAuth:', savedAuth);
+    
     if (savedAuth === '888888' || savedAuth === '666666') {
       setAuthenticated(true);
       setCanDelete(savedAuth === '666666');
+      console.log('Auth from session - canDelete:', savedAuth === '666666');
     } else {
       // Pedir password UMA vez
       const password = prompt('Insere a password de acesso ao painel administrativo:');
+      console.log('Password entered:', password);
+      
       if (password === '888888' || password === '666666') {
         sessionStorage.setItem('adminPassword', password);
         setAuthenticated(true);
         setCanDelete(password === '666666');
+        console.log('Auth from prompt - canDelete:', password === '666666');
       } else {
         alert('Password incorreta. Acesso negado.');
         window.location.href = '/';
@@ -368,6 +374,8 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
       </div>
     );
   }
+
+  console.log('Render - authenticated:', authenticated, 'canDelete:', canDelete);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-10 px-4">
