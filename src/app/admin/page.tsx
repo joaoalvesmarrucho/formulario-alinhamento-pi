@@ -392,6 +392,19 @@ export default function AdminPage({ searchParams }: AdminPageProps) {
               Auth: {authenticated ? '✓' : '✗'} | Delete: {canDelete ? '✓' : '✗'} | Pass: {typeof window !== 'undefined' ? sessionStorage.getItem('adminPassword') : 'N/A'}
             </div>
             
+            {/* Clear session button */}
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  sessionStorage.removeItem('adminPassword');
+                  window.location.reload();
+                }
+              }}
+              className="text-xs px-3 py-1.5 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+            >
+              Limpar sessão
+            </button>
+            
             {canDelete && (
               <span className="text-xs px-3 py-1.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-md flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
